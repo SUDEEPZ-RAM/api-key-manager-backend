@@ -1,0 +1,3 @@
+package com.vault.security;
+import com.vault.repository.UserRepository;import org.springframework.security.core.userdetails.*;import org.springframework.stereotype.Service;
+@Service public class AccountDetailsService implements UserDetailsService{private final UserRepository users;public AccountDetailsService(UserRepository users){this.users=users;}@Override public UserDetails loadUserByUsername(String username){var user=users.findByEmail(username.toLowerCase()).orElseThrow(()->new UsernameNotFoundException("Account not found"));return User.withUsername(user.getEmail()).password(user.getPasswordHash()).authorities("USER").build();}}

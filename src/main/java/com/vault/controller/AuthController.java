@@ -1,0 +1,2 @@
+package com.vault.controller;import com.vault.dto.*;import com.vault.service.AccountService;import jakarta.validation.Valid;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/auth") public class AuthController{private final AccountService service;public AuthController(AccountService s){service=s;}@PostMapping("/register") public Views.AuthView register(@Valid @RequestBody Requests.Register x){return service.register(x);}@PostMapping("/login")public Views.AuthView login(@Valid @RequestBody Requests.Login x){return service.login(x);}}

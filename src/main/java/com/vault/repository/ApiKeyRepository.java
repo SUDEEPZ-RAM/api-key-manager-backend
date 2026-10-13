@@ -1,0 +1,1 @@
+package com.vault.repository;import com.vault.entity.ApiKey;import org.springframework.data.jpa.repository.JpaRepository;import java.util.*;public interface ApiKeyRepository extends JpaRepository<ApiKey,UUID>{List<ApiKey> findByUserIdOrderByCreatedAtDesc(UUID userId);Optional<ApiKey> findByIdAndUserId(UUID id,UUID userId);}

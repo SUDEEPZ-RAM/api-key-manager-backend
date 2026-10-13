@@ -1,0 +1,8 @@
+target/
+.m2repo/
+.env
+.env.*
+!.env.example
+*.log
+.idea/
+.vscode/

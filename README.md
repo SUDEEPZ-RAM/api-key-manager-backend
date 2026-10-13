@@ -22,6 +22,19 @@ mvn spring-boot:run
 
 The API listens on `http://localhost:8081`. Frontend CORS defaults to `http://localhost:5173`.
 
+## Deploying the backend to Render
+
+This repository includes a `render.yaml` Blueprint and a Dockerfile configured for Render's `PORT` (default `10000`). Connect this repository to Render as a Blueprint, or create a Docker Web Service using the repository root as the Docker context and `./Dockerfile` as the Dockerfile path. The public health check is `/health`.
+
+The backend requires a reachable MySQL 8 database. A MySQL service running on your computer at `localhost:3306` is not reachable from Render. Create a MySQL private service in the same Render workspace (the [Render MySQL guide](https://render.com/docs/deploy-mysql) describes deploying one with a persistent disk), then set the backend service variables:
+
+- `DB_URL`: `jdbc:mysql://<mysql-private-host>:3306/api_key_manager?useSSL=false&allowPublicKeyRetrieval=true` (use the private hostname shown by the MySQL service)
+- `DB_USERNAME` and `DB_PASSWORD`: the database user and password configured for MySQL
+- `JWT_SECRET` and `ENCRYPTION_SECRET`: separate random values, each at least 32 characters; keep them stable across deploys so existing tokens and encrypted keys remain usable
+- `FRONTEND_ORIGIN`: the deployed frontend's exact `https://...onrender.com` origin, with no trailing slash
+
+Set the variables in Render's Environment page before the service starts. Do not put production secrets in `render.yaml`, Git, or the Docker image. Keep the MySQL service and backend in the same Render region so the backend can use the database's private hostname.
+
 ## Build and tests
 
 ```powershell

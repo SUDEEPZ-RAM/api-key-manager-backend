@@ -1,12 +1,13 @@
 # API Key Manager API
 
-Spring Boot REST API for Vault. API keys are encrypted with AES-GCM before persistence. Regular API responses contain masked metadata; the reveal endpoint requires the user's password. MySQL stores users, encrypted API keys, and audit activity.
+Spring Boot REST API for Vault. API keys are encrypted with AES-GCM before persistence. Regular API responses contain masked metadata; the reveal endpoint requires the user's password. MySQL or PostgreSQL stores users, encrypted API keys, and audit activity.
 
 ## Requirements
 
 - Java 21+
 - Maven 3.9+
 - MySQL 8
+- PostgreSQL 15+
 
 ## Local setup
 
@@ -26,14 +27,16 @@ The API listens on `http://localhost:8081`. Frontend CORS defaults to `http://lo
 
 This repository includes a `render.yaml` Blueprint and a Dockerfile configured for Render's `PORT` (default `10000`). Connect this repository to Render as a Blueprint, or create a Docker Web Service using the repository root as the Docker context and `./Dockerfile` as the Dockerfile path. The public health check is `/health`.
 
-The backend requires a reachable MySQL 8 database. A MySQL service running on your computer at `localhost:3306` is not reachable from Render. Create a MySQL private service in the same Render workspace (the [Render MySQL guide](https://render.com/docs/deploy-mysql) describes deploying one with a persistent disk), then set the backend service variables:
+The backend can use either MySQL or PostgreSQL. A database running on your computer at `localhost` is not reachable from Render. For a no-cost college/demo deployment, Render offers a free PostgreSQL database and a free web service. The free PostgreSQL database expires 30 days after creation, has a 1 GB storage limit, and has no backups; export your data before expiration. The free web service sleeps after 15 minutes without traffic and may take about a minute to wake. See [Render's free instance limits](https://render.com/docs/free).
 
-- `DB_URL`: `jdbc:mysql://<mysql-private-host>:3306/api_key_manager?useSSL=false&allowPublicKeyRetrieval=true` (use the private hostname shown by the MySQL service)
-- `DB_USERNAME` and `DB_PASSWORD`: the database user and password configured for MySQL
+Set the backend service's variables in Render's Environment page:
+
+- `DB_URL`: `jdbc:postgresql://<internal-host>:5432/<database>?sslmode=require` (use the database's internal connection host and database name)
+- `DB_USERNAME` and `DB_PASSWORD`: the database user and password
 - `JWT_SECRET` and `ENCRYPTION_SECRET`: separate random values, each at least 32 characters; keep them stable across deploys so existing tokens and encrypted keys remain usable
-- `FRONTEND_ORIGIN`: the deployed frontend's exact `https://...onrender.com` origin, with no trailing slash
+- `FRONTEND_ORIGIN`: the frontend's exact origin, including `https://` and without a trailing slash
 
-Set the variables in Render's Environment page before the service starts. Do not put production secrets in `render.yaml`, Git, or the Docker image. Keep the MySQL service and backend in the same Render region so the backend can use the database's private hostname.
+Keep the database and backend in the same Render region so the backend can use the database's internal connection host. Do not put production secrets in `render.yaml`, Git, or the Docker image. Local MySQL remains supported by the default `.env.example` settings.
 
 ## Build and tests
 
@@ -57,3 +60,4 @@ mvn package
 | GET | `/api/activity`, `/api/dashboard/stats` | Audit history and statistics |
 
 All authenticated routes require `Authorization: Bearer <JWT>`. The tables `users`, `api_keys`, and `activity_logs` are managed by JPA for local development. Use versioned migrations and managed secrets for production.
+
